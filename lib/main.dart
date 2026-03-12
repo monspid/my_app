@@ -26,8 +26,18 @@ Future<void> main() async {
   await Hive.openBox<String>(HiveKeys.draftsBox); // chatId -> draft text
   await Hive.openBox(HiveKeys.settingsBox);
 
-  /// NEW: profile storage
-  await Hive.openBox('profileBox');
+  /// Profile storage
+  final profileBox = await Hive.openBox('profileBox');
+
+  /// FIX: clear old profile data if it exists (wrong types from previous version)
+  if (profileBox.containsKey('profile')) {
+    final data = profileBox.get('profile');
+
+    // If avatar stored as String (old version), clear it
+    if (data is Map && data['avatar'] is String) {
+      await profileBox.clear();
+    }
+  }
 
   // Seed mock data on first run.
   await seedIfNeeded();
