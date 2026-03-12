@@ -26,6 +26,9 @@ Future<void> main() async {
   await Hive.openBox<String>(HiveKeys.draftsBox); // chatId -> draft text
   await Hive.openBox(HiveKeys.settingsBox);
 
+  /// NEW: profile storage
+  await Hive.openBox('profileBox');
+
   // Seed mock data on first run.
   await seedIfNeeded();
 
