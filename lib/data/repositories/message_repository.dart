@@ -4,6 +4,8 @@ abstract class MessageRepository {
   Stream<List<Message>> watchByChat(String chatId);
   Future<List<Message>> getByChatOnce(String chatId);
 
+  Future<List<Message>> getMessages(String chatId);
+
   Future<void> sendMessage({
     required String chatId,
     required String senderId,

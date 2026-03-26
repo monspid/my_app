@@ -12,39 +12,43 @@ import 'data/repositories/hive/hive_keys.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  /// 🔥 INIT HIVE
   await Hive.initFlutter();
 
-  // Register adapters (manual, no build_runner).
-  if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(UserAdapter());
-  if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(ChatAdapter());
-  if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(MessageAdapter());
-
-  // Open boxes.
-  await Hive.openBox<User>(HiveKeys.usersBox);
-  await Hive.openBox<Chat>(HiveKeys.chatsBox);
-  await Hive.openBox<List>(HiveKeys.messagesByChatBox); // List<Message>
-  await Hive.openBox<String>(HiveKeys.draftsBox); // chatId -> draft text
-  await Hive.openBox(HiveKeys.settingsBox);
-
-  /// NEW: profile storage
-  await Hive.openBox('profileBox');
-
-  /// Profile storage
-  final profileBox = await Hive.openBox('profileBox');
-
-  /// FIX: clear old profile data if it exists (wrong types from previous version)
-  if (profileBox.containsKey('profile')) {
-    final data = profileBox.get('profile');
-
-    // If avatar stored as String (old version), clear it
-    if (data is Map && data['avatar'] is String) {
-      await profileBox.clear();
-    }
+  /// 🔥 REGISTER ADAPTERS
+  if (!Hive.isAdapterRegistered(1)) {
+    Hive.registerAdapter(UserAdapter());
+  }
+  if (!Hive.isAdapterRegistered(2)) {
+    Hive.registerAdapter(ChatAdapter());
+  }
+  if (!Hive.isAdapterRegistered(3)) {
+    Hive.registerAdapter(MessageAdapter());
   }
 
-  // Seed mock data on first run.
+  /// 🔥 OPEN ALL BOXES
+  await Hive.openBox<User>(HiveKeys.usersBox);
+  await Hive.openBox<Chat>(HiveKeys.chatsBox);
+  await Hive.openBox<List>(HiveKeys.messagesByChatBox);
+  await Hive.openBox<String>(HiveKeys.draftsBox);
+  await Hive.openBox(HiveKeys.settingsBox);
+
+  /// ✅ ВАЖНО: PROFILE BOX (ИМЯ ДОЛЖНО СОВПАДАТЬ!)
+  final profileBox = await Hive.openBox('profile');
+
+  /// 🧹 FIX: очистка старых кривых данных
+  final existingName = profileBox.get('name');
+  final existingUsername = profileBox.get('username');
+
+  // если вдруг старый формат (например Map) — чистим
+  if (existingName is Map || existingUsername is Map) {
+    await profileBox.clear();
+  }
+
+  /// 🔥 SEED MOCK DATA
   await seedIfNeeded();
 
+  /// 🚀 RUN APP
   runApp(
     const ProviderScope(
       child: MessengerApp(),
